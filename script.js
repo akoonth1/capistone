@@ -5,13 +5,32 @@ document.addEventListener('DOMContentLoaded', () => {
     theBody.style.margin = '0';
     theBody.style.padding = '16px';
     theBody.style.backgroundColor = '#5674c3';
-
+    theBody.style.display = 'flex';
+    theBody.style.flexDirection = 'column';
+    theBody.style.alignItems = 'center';
+    theBody.style.position = 'relative';
+    
+    // Create background overlay div with opacity
+    const bgOverlay = document.createElement('div');
+    bgOverlay.style.position = 'fixed';
+    bgOverlay.style.top = '0';
+    bgOverlay.style.left = '0';
+    bgOverlay.style.width = '100%';
+    bgOverlay.style.height = '100%';
+    bgOverlay.style.backgroundImage = 'url("./images/mic.jpg")';
+    bgOverlay.style.backgroundSize = 'cover';
+    bgOverlay.style.backgroundPosition = 'center 30%';
+    bgOverlay.style.backgroundRepeat = 'no-repeat';
+    bgOverlay.style.opacity = '0.50';
+    bgOverlay.style.zIndex = '-1';
+    theBody.prepend(bgOverlay);
+    theBody.style.opacity = '1.';
     
     const signupSection = document.getElementById('signup-section');
     signupSection.style.color = 'blue';
     signupSection.style.fontSize = '20px';
     signupSection.style.display = 'flex';
-    signupSection.innerHTML = `<h2>Sign Up Form</h2>`
+    // signupSection.innerHTML = `<h2>Sign Up Form</h2>`
 
  const form = document.createElement('form');
  signupSection.appendChild(form);
