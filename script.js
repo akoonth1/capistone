@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navList.style.display = 'flex';
     navList.style.gap = '20px';
 
-    const navItems = ['Home', 'About', 'Dashboard','Contact'];  
+    const navItems = ['Home', 'About', 'Dashboard','Record','Contact'];  
     navItems.forEach(item => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -134,3 +134,119 @@ form.addEventListener('submit', (e) => {
 });
 
 });
+
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const player = document.getElementById("player");
+const downloadLink = document.getElementById("downloadLink");
+const statusEl = document.getElementById("status");
+
+let stream;
+let recorder;
+let chunks = [];
+let audioBlobUrl;
+
+function setStatus(msg) {
+  statusEl.textContent = msg;
+}
+
+function pickMimeType() {
+ 
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4", 
+  ];
+
+  for (const type of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return ""; 
+}
+
+async function startRecording() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setStatus("Your browser does not support audio recording.");
+    return;
+  }
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+
+    const mimeType = pickMimeType();
+    recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+    chunks = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
+    recorder.onstart = () => setStatus("Recording...");
+    recorder.onerror = (e) => setStatus(`Recorder error: ${e.error?.message || "unknown"}`);
+
+    recorder.onstop = () => {
+      setStatus("Stopped.");
+
+      const blobType = recorder.mimeType || "audio/webm";
+      const audioBlob = new Blob(chunks, { type: blobType });
+
+      if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+      audioBlobUrl = URL.createObjectURL(audioBlob);
+
+      player.src = audioBlobUrl;
+
+      downloadLink.href = audioBlobUrl;
+      downloadLink.style.display = "inline-block";
+      downloadLink.textContent = "Download recording";
+
+      const ext = blobType.includes("mp4") ? "m4a" : "webm";
+      downloadLink.download = `recording.${ext}`;
+
+      // Stop mic tracks so the browser shows mic is off
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+    };
+
+    recorder.start(); 
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+  } catch (err) {
+    setStatus(`Mic permission failed: ${err.message}`);
+  }
+}
+
+function stopRecording() {
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+}
+
+startBtn.addEventListener("click", startRecording);
+stopBtn.addEventListener("click", stopRecording);
+
+// Store author name for future fetch requests
+let selectedAuthor;
+
+fetch('https://poetrydb.org/author')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Authors:', data);
+        // PoetryDB returns an object with authors property
+        if (data.authors && data.authors.length > 0) {
+            selectedAuthor = data.authors[2];
+            console.log('One author:', selectedAuthor);
+        } else if (Array.isArray(data) && data.length > 0) {
+            selectedAuthor = data[2];
+            console.log('One author:', selectedAuthor);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching authors:', error);
+    });
