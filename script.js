@@ -61,14 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     const signupSection = document.getElementById('signup-section');
-    signupSection.style.color = 'blue';
+    if (signupSection) {
+    signupSection.style.color = 'red';
     signupSection.style.fontSize = '20px';
     signupSection.style.display = 'flex';
     signupSection.style.flexDirection = 'column';
     signupSection.style.alignItems = 'center';
     signupSection.style.justifyContent = 'center';
     signupSection.style.marginTop = '10%';
-
+    }
 
  const form = document.createElement('form');
  signupSection.appendChild(form);
@@ -231,6 +232,13 @@ function stopRecording() {
 startBtn.addEventListener("click", startRecording);
 stopBtn.addEventListener("click", stopRecording);
 
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
 // Store author name for future fetch requests
 let selectedAuthor;
 
@@ -239,14 +247,28 @@ fetch('https://poetrydb.org/author')
     .then(data => {
         console.log('Authors:', data);
         // PoetryDB returns an object with authors property
+        authorNumber = getRandomInt(0, data.authors.length);
         if (data.authors && data.authors.length > 0) {
-            selectedAuthor = data.authors[2];
+            selectedAuthor = data.authors[authorNumber];
             console.log('One author:', selectedAuthor);
         } else if (Array.isArray(data) && data.length > 0) {
-            selectedAuthor = data[2];
+            selectedAuthor = data[authorNumber];
             console.log('One author:', selectedAuthor);
         }
     })
     .catch(error => {
         console.error('Error fetching authors:', error);
     });
+
+
+
+async function loadRandomAuthorPoems() {
+const r = await fetch('https://poetrydb.org/author');
+const data = await r.json();
+const authors = data.authors ?? data;
+const author = authors[getRandomInt(0, authors.length)];
+const poemsRes = await fetch('https://poetrydb.org/author/' + encodeURIComponent(author));
+const poems = await poemsRes.json();
+console.log(author, poems);
+}
+loadRandomAuthorPoems();
