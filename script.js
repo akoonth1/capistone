@@ -302,9 +302,25 @@ if (!poemBtn) {
 
 poemBtn.addEventListener('click', async () => {
   const { author, poems } = await loadRandomAuthorPoems();
-  const poem = poems[getRandomInt(0, poems.length)];
+  if (!Array.isArray(poems) || poems.length === 0) {
+    poemContainer.textContent = 'No poems found for that author.';
+    return;
+  }
+
+  // Prefer poems with <= 20 lines when available
+  const shortPoems = poems.filter(p => (p.lines || []).length <= 20);
+  const pool = shortPoems.length ? shortPoems : poems;
+  const poem = pool[getRandomInt(0, pool.length)];
   const poemText = (poem.lines || []).join('\n') || poem.text || '';
-  poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+
+  poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+  poemContainer.scrollIntoView({ behavior: 'smooth' });
+  poemContainer.style.display = 'block';
+  poemBtn.style.display = 'none';
+  poemContainer.style.fontSize = '24px';
+  poemContainer.style.textAlign = 'center';
+  poemContainer.style.width = '150%';
+
 });
 
 
