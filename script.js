@@ -147,6 +147,8 @@ let stream;
 let recorder;
 let chunks = [];
 let audioBlobUrl;
+// Track currently-displayed poem for naming downloads
+let currentPoem = { title: null, author: null };
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -208,7 +210,14 @@ async function startRecording() {
       downloadLink.textContent = "Download recording";
 
       const ext = blobType.includes("mp4") ? "m4a" : "webm";
-      downloadLink.download = `recording.${ext}`;
+      // Build filename from current poem title + author, remove spaces and unsafe chars
+      const titlePart = (currentPoem.title || 'recording').toString();
+      const authorPart = (currentPoem.author || '').toString();
+      let baseName = `${titlePart}_${authorPart}`;
+      baseName = baseName.replace(/\s+/g, '') // remove spaces
+             .replace(/[^a-zA-Z0-9_\-]/g, '') // remove unsafe chars
+             .substring(0, 120) || 'recording';
+      downloadLink.download = `${baseName}.${ext}`;
 
       // Stop mic tracks so the browser shows mic is off
       stream.getTracks().forEach((t) => t.stop());
@@ -312,6 +321,10 @@ poemBtn.addEventListener('click', async () => {
   const pool = shortPoems.length ? shortPoems : poems;
   const poem = pool[getRandomInt(0, pool.length)];
   const poemText = (poem.lines || []).join('\n') || poem.text || '';
+
+  // store current poem info for naming downloads
+  currentPoem.title = poem.title || 'poem';
+  currentPoem.author = author || '';
 
   poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
   poemContainer.scrollIntoView({ behavior: 'smooth' });
