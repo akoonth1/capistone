@@ -149,7 +149,7 @@ let chunks = [];
 let audioBlobUrl;
 
 function setStatus(msg) {
-  statusEl.textContent = msg;
+  if (statusEl) statusEl.textContent = msg;
 }
 
 function pickMimeType() {
@@ -229,8 +229,8 @@ function stopRecording() {
   stopBtn.disabled = true;
 }
 
-startBtn.addEventListener("click", startRecording);
-stopBtn.addEventListener("click", stopRecording);
+if (startBtn) startBtn.addEventListener("click", startRecording);
+if (stopBtn) stopBtn.addEventListener("click", stopRecording);
 
 
 function getRandomInt(min, max) {
@@ -242,23 +242,23 @@ function getRandomInt(min, max) {
 // Store author name for future fetch requests
 let selectedAuthor;
 
-fetch('https://poetrydb.org/author')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Authors:', data);
-        // PoetryDB returns an object with authors property
-        authorNumber = getRandomInt(0, data.authors.length);
-        if (data.authors && data.authors.length > 0) {
-            selectedAuthor = data.authors[authorNumber];
-            console.log('One author:', selectedAuthor);
-        } else if (Array.isArray(data) && data.length > 0) {
-            selectedAuthor = data[authorNumber];
-            console.log('One author:', selectedAuthor);
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching authors:', error);
-    });
+// fetch('https://poetrydb.org/author')
+//     .then(response => response.json())
+//     .then(data => {
+//         console.log('Authors:', data);
+//         // PoetryDB returns an object with authors property
+//         authorNumber = getRandomInt(0, data.authors.length);
+//         if (data.authors && data.authors.length > 0) {
+//             selectedAuthor = data.authors[authorNumber];
+//             console.log('One author:', selectedAuthor);
+//         } else if (Array.isArray(data) && data.length > 0) {
+//             selectedAuthor = data[authorNumber];
+//             console.log('One author:', selectedAuthor);
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error fetching authors:', error);
+//     });
 
 
 
@@ -267,8 +267,44 @@ const r = await fetch('https://poetrydb.org/author');
 const data = await r.json();
 const authors = data.authors ?? data;
 const author = authors[getRandomInt(0, authors.length)];
+const selectedAuthor = author;
 const poemsRes = await fetch('https://poetrydb.org/author/' + encodeURIComponent(author));
 const poems = await poemsRes.json();
 console.log(author, poems);
+return { author, poems };
 }
 loadRandomAuthorPoems();
+
+
+let poemContainer = document.getElementById('poemContainer');
+if (!poemContainer) {
+  poemContainer = document.createElement('div');
+  poemContainer.id = 'poemContainer';
+  poemContainer.style.whiteSpace = 'pre-wrap';
+  poemContainer.style.background = 'rgba(255,255,255,0.85)';
+  poemContainer.style.padding = '12px';
+  poemContainer.style.borderRadius = '6px';
+  poemContainer.style.marginTop = '10px';
+  poemContainer.style.maxWidth = '800px';
+  poemContainer.style.width = '90%';
+  const recorderSection = document.getElementById('recorder') || document.getElementById('signup-section') || document.body;
+  recorderSection.appendChild(poemContainer);
+}
+
+let poemBtn = document.getElementById('poemBtn');
+if (!poemBtn) {
+  poemBtn = document.createElement('button');
+  poemBtn.id = 'poemBtn';
+  poemBtn.textContent = 'Get Poem';
+  poemBtn.className = 'btn btn-secondary';
+  poemContainer.parentNode.insertBefore(poemBtn, poemContainer);
+}
+
+poemBtn.addEventListener('click', async () => {
+  const { author, poems } = await loadRandomAuthorPoems();
+  const poem = poems[getRandomInt(0, poems.length)];
+  const poemText = (poem.lines || []).join('\n') || poem.text || '';
+  poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+});
+
+
