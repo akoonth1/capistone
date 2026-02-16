@@ -546,6 +546,7 @@ async function startRecording() {
 
     recorder.onstop = () => {
       setStatus("Stopped.");
+      const recordingDuration = elapsedTime;
       resetTimer();
 
       const blobType = recorder.mimeType || "audio/webm";
@@ -569,6 +570,9 @@ async function startRecording() {
              .replace(/[^a-zA-Z0-9_\-]/g, '') // remove unsafe chars
              .substring(0, 120) || 'recording';
       downloadLink.download = `${baseName}.${ext}`;
+
+      // Save recording metadata and audio to localStorage
+      saveRecordingToHistory(recordingDuration, audioBlob, blobType);
 
       // Stop mic tracks so the browser shows mic is off
       stream.getTracks().forEach((t) => t.stop());
@@ -602,6 +606,60 @@ function pauseRecording() {
     recorder.resume();
     pauseBtn.textContent = "Pause";
     pauseBtn.className = "btn btn-warning";
+  }
+}
+
+function saveRecordingToHistory(duration, audioBlob, blobType) {
+  try {
+    // Get current user
+    const currentUser = localStorage.getItem('currentUser') || 'Guest';
+    
+    // Format duration as MM:SS
+    const totalSeconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const durationFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    // Convert audio blob to base64 for storage
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = () => {
+      const audioData = reader.result;
+      
+      // Create recording object
+      const recording = {
+        id: Date.now(),
+        user: currentUser,
+        poemTitle: currentPoem.title || 'No poem selected',
+        author: currentPoem.author || 'Unknown',
+        duration: durationFormatted,
+        timestamp: new Date().toLocaleString(),
+        timestampRaw: Date.now(),
+        audioData: audioData,
+        audioType: blobType
+      };
+      
+      // Get existing recordings or initialize empty array
+      const recordings = JSON.parse(localStorage.getItem('recordings') || '[]');
+      
+      // Add new recording to the beginning
+      recordings.unshift(recording);
+      
+      // Keep only last 10 recordings to manage localStorage size
+      if (recordings.length > 10) {
+        recordings.splice(10);
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem('recordings', JSON.stringify(recordings));
+      
+      console.log('Recording saved to history with audio data');
+    };
+    
+  } catch (e) {
+    console.error('Failed to save recording to history:', e);
+    // If localStorage is full, try to save without audio
+    alert('Recording saved but audio could not be stored (storage full). Consider clearing old recordings.');
   }
 }
 
@@ -755,6 +813,177 @@ if (poemClearBtn && poemContainer) {
     poemClearBtn.style.display = 'none';
     if (poemBtn) poemBtn.style.display = 'inline-block';
   });
+}
+
+
+// Dashboard functionality
+const recordingsTableBody = document.getElementById('recordingsTableBody');
+const noRecordingsDiv = document.getElementById('noRecordings');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const recordingsTable = document.getElementById('recordingsTable');
+
+function loadRecordings() {
+  if (!recordingsTableBody) return;
+  
+  try {
+    const recordings = JSON.parse(localStorage.getItem('recordings') || '[]');
+    
+    // Clear existing rows
+    recordingsTableBody.innerHTML = '';
+    
+    if (recordings.length === 0) {
+      if (recordingsTable) recordingsTable.style.display = 'none';
+      if (noRecordingsDiv) noRecordingsDiv.style.display = 'block';
+      return;
+    }
+    
+    if (recordingsTable) recordingsTable.style.display = 'table';
+    if (noRecordingsDiv) noRecordingsDiv.style.display = 'none';
+    
+    // Populate table rows
+    recordings.forEach((recording, index) => {
+      const row = document.createElement('tr');
+      
+      row.innerHTML = `
+        <td>${recording.user}</td>
+        <td>${recording.poemTitle}</td>
+        <td>${recording.author}</td>
+        <td>${recording.duration}</td>
+        <td>${recording.timestamp}</td>
+        <td>
+          <button class="btn btn-sm btn-danger delete-btn" data-id="${recording.id}">Delete</button>
+        </td>
+      `;
+      
+      recordingsTableBody.appendChild(row);
+    });
+    
+    // Add delete button listeners
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(e.target.getAttribute('data-id'));
+        deleteRecording(id);
+      });
+    });
+    
+  } catch (e) {
+    console.error('Failed to load recordings:', e);
+  }
+}
+
+function deleteRecording(id) {
+  try {
+    const recordings = JSON.parse(localStorage.getItem('recordings') || '[]');
+    const filtered = recordings.filter(r => r.id !== id);
+    localStorage.setItem('recordings', JSON.stringify(filtered));
+    loadRecordings();
+  } catch (e) {
+    console.error('Failed to delete recording:', e);
+  }
+}
+
+function clearAllRecordings() {
+  if (confirm('Are you sure you want to delete all recordings? This cannot be undone.')) {
+    try {
+      localStorage.setItem('recordings', '[]');
+      loadRecordings();
+    } catch (e) {
+      console.error('Failed to clear recordings:', e);
+    }
+  }
+}
+
+if (clearHistoryBtn) {
+  clearHistoryBtn.addEventListener('click', clearAllRecordings);
+}
+
+// Load recordings when dashboard page loads
+if (recordingsTableBody) {
+  loadRecordings();
+}
+
+
+// Home page carousel functionality
+const carouselInner = document.getElementById('carouselInner');
+const carouselIndicators = document.getElementById('carouselIndicators');
+
+function loadCarousel() {
+  if (!carouselInner) return;
+  
+  try {
+    const recordings = JSON.parse(localStorage.getItem('recordings') || '[]');
+    
+    if (recordings.length === 0) {
+      // Keep the default "no recordings" message
+      return;
+    }
+    
+    // Clear default content
+    carouselInner.innerHTML = '';
+    if (carouselIndicators) carouselIndicators.innerHTML = '';
+    
+    // Create carousel items
+    recordings.forEach((recording, index) => {
+      // Create carousel item
+      const carouselItem = document.createElement('div');
+      carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+      
+      carouselItem.innerHTML = `
+        <div class="d-flex flex-column align-items-center justify-content-center p-4 bg-light rounded" style="min-height: 400px;">
+          <div class="card" style="max-width: 600px; width: 100%;">
+            <div class="card-body">
+              <h5 class="card-title">${recording.poemTitle}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">by ${recording.author}</h6>
+              <hr>
+              <p class="card-text">
+                <strong>Recorded by:</strong> ${recording.user}<br>
+                <strong>Duration:</strong> ${recording.duration}<br>
+                <strong>Date:</strong> ${recording.timestamp}
+              </p>
+              ${recording.audioData ? `
+                <audio controls class="w-100 mt-3" id="audio-${recording.id}">
+                  <source src="${recording.audioData}" type="${recording.audioType}">
+                  Your browser does not support the audio element.
+                </audio>
+              ` : '<p class="text-muted">Audio not available</p>'}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      carouselInner.appendChild(carouselItem);
+      
+      // Create indicator
+      if (carouselIndicators) {
+        const indicator = document.createElement('button');
+        indicator.type = 'button';
+        indicator.setAttribute('data-bs-target', '#recordingsCarousel');
+        indicator.setAttribute('data-bs-slide-to', index);
+        if (index === 0) indicator.className = 'active';
+        indicator.setAttribute('aria-label', `Slide ${index + 1}`);
+        if (index === 0) indicator.setAttribute('aria-current', 'true');
+        carouselIndicators.appendChild(indicator);
+      }
+    });
+    
+    // Pause all audio players when carousel slides
+    const carousel = document.getElementById('recordingsCarousel');
+    if (carousel) {
+      carousel.addEventListener('slide.bs.carousel', () => {
+        document.querySelectorAll('audio').forEach(audio => {
+          audio.pause();
+        });
+      });
+    }
+    
+  } catch (e) {
+    console.error('Failed to load carousel:', e);
+  }
+}
+
+// Load carousel when home page loads
+if (carouselInner) {
+  loadCarousel();
 }
 
 

@@ -9,9 +9,33 @@
 
 </head>
 <body>
-    <section id="dashboard">
-        <h1>Dashboard</h1>
-        <p>Welcome to the dashboard!</p>
+    <h1 id="mainTitle">OpenVerse Dashboard</h1>
+    <section id="dashboard" class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Recording History</h2>
+            <button id="clearHistoryBtn" class="btn btn-danger">Clear All</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="recordingsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>User</th>
+                        <th>Poem Title</th>
+                        <th>Author</th>
+                        <th>Duration</th>
+                        <th>Date & Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recordingsTableBody">
+                    <!-- Recordings will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <div id="noRecordings" class="text-center text-muted py-5" style="display: none;">
+            <h4>No recordings yet</h4>
+            <p>Start recording to see your history here!</p>
+        </div>
     </section>
 </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="" crossorigin="anonymous"></script>
