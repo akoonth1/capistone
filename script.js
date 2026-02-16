@@ -22,12 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     navList.style.display = 'flex';
     navList.style.gap = '20px';
 
-    const navItems = ['Home', 'About', 'Dashboard','Record','Contact'];  
+    const navItems = [
+        { text: 'Home', href: 'index.html' },
+        { text: 'Dashboard', href: 'dash.html' },
+        { text: 'Record', href: 'recorder.html' },
+        { text: 'Signup/In', href: 'signup.html' },
+    ];
     navItems.forEach(item => {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.textContent = item;
-        a.href = '#';
+        a.textContent = item.text;
+        a.href = item.href;
         a.style.color = 'white';
         a.style.textDecoration = 'none';    
         a.style.fontSize = '18px';
@@ -62,77 +67,350 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const signupSection = document.getElementById('signup-section');
     if (signupSection) {
-    signupSection.style.color = 'red';
-    signupSection.style.fontSize = '20px';
-    signupSection.style.display = 'flex';
-    signupSection.style.flexDirection = 'column';
-    signupSection.style.alignItems = 'center';
-    signupSection.style.justifyContent = 'center';
-    signupSection.style.marginTop = '10%';
-    }
+    signupSection.className = 'd-flex flex-column align-items-center justify-content-center mt-5';
+    signupSection.style.color = '#333';
 
- const form = document.createElement('form');
- signupSection.appendChild(form);
+    // Toggle buttons container
+    const toggleContainer = document.createElement('div');
+    toggleContainer.className = 'btn-group mb-3';
+    toggleContainer.setAttribute('role', 'group');
+    signupSection.appendChild(toggleContainer);
 
- form.style.backgroundColor = '#8aa2b67f';
- form.style.padding = '20px';
- form.style.display = 'flex';
- form.style.flexDirection = 'row';
- form.style.gap = '15px';
- form.style.alignItems = 'center';
- form.style.flexWrap = 'wrap';
- form.style.borderRadius = '8px';
+    const signupToggleBtn = document.createElement('button');
+    signupToggleBtn.type = 'button';
+    signupToggleBtn.className = 'btn btn-primary';
+    signupToggleBtn.textContent = 'Sign Up';
+    toggleContainer.appendChild(signupToggleBtn);
 
- const usernameLabel = document.createElement('label');
- usernameLabel.textContent = 'Username: ';
- form.appendChild(usernameLabel);
+    const signinToggleBtn = document.createElement('button');
+    signinToggleBtn.type = 'button';
+    signinToggleBtn.className = 'btn btn-outline-primary';
+    signinToggleBtn.textContent = 'Sign In';
+    toggleContainer.appendChild(signinToggleBtn);
+
+    // Signup form
+    const signupForm = document.createElement('form');
+    signupForm.className = 'p-4 rounded shadow-sm';
+    signupForm.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+    signupForm.style.maxWidth = '500px';
+    signupForm.style.width = '90%';
+    signupSection.appendChild(signupForm);
+
+    // Signin form
+    const signinForm = document.createElement('form');
+    signinForm.className = 'p-4 rounded shadow-sm';
+    signinForm.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+    signinForm.style.maxWidth = '500px';
+    signinForm.style.width = '90%';
+    signinForm.style.display = 'none';
+    signupSection.appendChild(signinForm);
+
+    // Toggle functionality
+    signupToggleBtn.addEventListener('click', () => {
+        signupToggleBtn.className = 'btn btn-primary';
+        signinToggleBtn.className = 'btn btn-outline-primary';
+        signupForm.style.display = 'block';
+        signinForm.style.display = 'none';
+    });
+
+    signinToggleBtn.addEventListener('click', () => {
+        signinToggleBtn.className = 'btn btn-primary';
+        signupToggleBtn.className = 'btn btn-outline-primary';
+        signinForm.style.display = 'block';
+        signupForm.style.display = 'none';
+    });
+
+    const form = signupForm;
+
+    // Username field
+    const usernameGroup = document.createElement('div');
+    usernameGroup.className = 'mb-3';
+    form.appendChild(usernameGroup);
+
+    const usernameLabel = document.createElement('label');
+    usernameLabel.className = 'form-label fw-bold';
+    usernameLabel.textContent = 'Username';
+    usernameLabel.htmlFor = 'username';
+    usernameGroup.appendChild(usernameLabel);
 
     const usernameInput = document.createElement('input');
     usernameInput.type = 'text';
     usernameInput.name = 'username';
+    usernameInput.id = 'username';
+    usernameInput.className = 'form-control';
     usernameInput.required = true;
     usernameInput.pattern = '[A-Za-z0-9]+';
-    usernameInput.title = 'Username must contain only letters and numbers';
-    form.appendChild(usernameInput);
+    usernameInput.placeholder = 'Enter username (letters and numbers only)';
+    usernameGroup.appendChild(usernameInput);
 
+    // Email field
+    const emailGroup = document.createElement('div');
+    emailGroup.className = 'mb-3';
+    form.appendChild(emailGroup);
 
-     const userPasswordLabel = document.createElement('label');
- userPasswordLabel.textContent = 'Password: ';
- form.appendChild(userPasswordLabel);
+    const emailLabel = document.createElement('label');
+    emailLabel.className = 'form-label fw-bold';
+    emailLabel.textContent = 'Email';
+    emailLabel.htmlFor = 'email';
+    emailGroup.appendChild(emailLabel);
 
-        const userPassword = document.createElement('input');
+    const emailInput = document.createElement('input');
+    emailInput.type = 'email';
+    emailInput.name = 'email';
+    emailInput.id = 'email';
+    emailInput.className = 'form-control';
+    emailInput.required = true;
+    emailInput.placeholder = 'Enter your email address';
+    emailGroup.appendChild(emailInput);
+
+    // Password field
+    const passwordGroup = document.createElement('div');
+    passwordGroup.className = 'mb-3';
+    form.appendChild(passwordGroup);
+
+    const userPasswordLabel = document.createElement('label');
+    userPasswordLabel.className = 'form-label fw-bold';
+    userPasswordLabel.textContent = 'Password';
+    userPasswordLabel.htmlFor = 'password';
+    passwordGroup.appendChild(userPasswordLabel);
+
+    const userPassword = document.createElement('input');
     userPassword.type = 'password';
     userPassword.name = 'password';
+    userPassword.id = 'password';
+    userPassword.className = 'form-control';
     userPassword.required = true;
     userPassword.pattern = '(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+';
-    userPassword.title = 'Password must contain both letters and numbers';
-    form.appendChild(userPassword);
+    userPassword.placeholder = 'Must contain letters and numbers';
+    passwordGroup.appendChild(userPassword);
 
-const submitBtn = document.createElement('button');
-submitBtn.type = 'submit';
-submitBtn.className = 'btn btn-primary btn-lg';
-submitBtn.textContent = 'Submit';
-form.appendChild(submitBtn);
+    // Confirm Password field
+    const confirmPasswordGroup = document.createElement('div');
+    confirmPasswordGroup.className = 'mb-3';
+    form.appendChild(confirmPasswordGroup);
 
-// Form validation on submit
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const usernameValue = usernameInput.value;
-    const passwordValue = userPassword.value;
-    const alphanumericRegex = /^[A-Za-z0-9]+$/;
-    const hasLetterAndNumber = /^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$/;
-    
-    if (!alphanumericRegex.test(usernameValue)) {
-        alert('Username must contain only letters and numbers');
-        return;
+    const confirmPasswordLabel = document.createElement('label');
+    confirmPasswordLabel.className = 'form-label fw-bold';
+    confirmPasswordLabel.textContent = 'Confirm Password';
+    confirmPasswordLabel.htmlFor = 'confirmPassword';
+    confirmPasswordGroup.appendChild(confirmPasswordLabel);
+
+    const confirmPassword = document.createElement('input');
+    confirmPassword.type = 'password';
+    confirmPassword.name = 'confirmPassword';
+    confirmPassword.id = 'confirmPassword';
+    confirmPassword.className = 'form-control';
+    confirmPassword.required = true;
+    confirmPassword.placeholder = 'Re-enter password';
+    confirmPasswordGroup.appendChild(confirmPassword);
+
+    // Age field
+    const ageGroup = document.createElement('div');
+    ageGroup.className = 'mb-3';
+    form.appendChild(ageGroup);
+
+    const ageLabel = document.createElement('label');
+    ageLabel.className = 'form-label fw-bold';
+    ageLabel.textContent = 'Age';
+    ageLabel.htmlFor = 'age';
+    ageGroup.appendChild(ageLabel);
+
+    const ageInput = document.createElement('input');
+    ageInput.type = 'number';
+    ageInput.name = 'age';
+    ageInput.id = 'age';
+    ageInput.className = 'form-control';
+    ageInput.required = true;
+    ageInput.min = '13';
+    ageInput.max = '120';
+    ageInput.placeholder = 'Enter your age (13-120)';
+    ageGroup.appendChild(ageInput);
+
+    // Account type field (dropdown)
+    const accountTypeGroup = document.createElement('div');
+    accountTypeGroup.className = 'mb-3';
+    form.appendChild(accountTypeGroup);
+
+    const accountTypeLabel = document.createElement('label');
+    accountTypeLabel.className = 'form-label fw-bold';
+    accountTypeLabel.textContent = 'Account Type';
+    accountTypeLabel.htmlFor = 'accountType';
+    accountTypeGroup.appendChild(accountTypeLabel);
+
+    const accountTypeSelect = document.createElement('select');
+    accountTypeSelect.name = 'accountType';
+    accountTypeSelect.id = 'accountType';
+    accountTypeSelect.className = 'form-select';
+    accountTypeSelect.required = true;
+    accountTypeGroup.appendChild(accountTypeSelect);
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select account type...';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    accountTypeSelect.appendChild(defaultOption);
+
+    const accountTypes = [
+        { value: 'listener', label: 'Listener' },
+        { value: 'reader', label: 'Reader' },
+        { value: 'both', label: 'Both' }
+    ];
+
+    accountTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.value;
+        option.textContent = type.label;
+        accountTypeSelect.appendChild(option);
+    });
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.className = 'btn btn-primary btn-lg w-100 mt-3';
+    submitBtn.textContent = 'Create Account';
+    form.appendChild(submitBtn);
+
+    // Form validation on submit
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const usernameValue = usernameInput.value;
+        const emailValue = emailInput.value;
+        const passwordValue = userPassword.value;
+        const confirmPasswordValue = confirmPassword.value;
+        const ageValue = parseInt(ageInput.value);
+        const accountTypeValue = accountTypeSelect.value;
+        
+        const alphanumericRegex = /^[A-Za-z0-9]+$/;
+        const hasLetterAndNumber = /^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$/;
+        
+        if (!alphanumericRegex.test(usernameValue)) {
+            alert('Username must contain only letters and numbers');
+            return;
+        }
+        
+        if (!hasLetterAndNumber.test(passwordValue)) {
+            alert('Password must contain both letters and numbers');
+            return;
+        }
+
+        if (passwordValue !== confirmPasswordValue) {
+            alert('Passwords do not match');
+            return;
+        }
+
+        if (ageValue < 13 || ageValue > 120) {
+            alert('Age must be between 13 and 120');
+            return;
+        }
+
+        if (!accountTypeValue) {
+            alert('Please select an account type');
+            return;
+        }
+
+        // If validation passes, save to localStorage
+        const userData = {
+            username: usernameValue,
+            email: emailValue,
+            age: ageValue,
+            accountType: accountTypeValue,
+            createdAt: Date.now()
+        };
+
+        try {
+            localStorage.setItem('userData', JSON.stringify(userData));
+            alert('Account created successfully!');
+            form.reset();
+        } catch (e) {
+            console.error('Failed to save user data:', e);
+            alert('Account created but failed to save locally');
+        }
+    });
+
+    // ===== SIGN IN FORM =====
+    // Username/Email field
+    const signinUsernameGroup = document.createElement('div');
+    signinUsernameGroup.className = 'mb-3';
+    signinForm.appendChild(signinUsernameGroup);
+
+    const signinUsernameLabel = document.createElement('label');
+    signinUsernameLabel.className = 'form-label fw-bold';
+    signinUsernameLabel.textContent = 'Username or Email';
+    signinUsernameLabel.htmlFor = 'signinUsername';
+    signinUsernameGroup.appendChild(signinUsernameLabel);
+
+    const signinUsernameInput = document.createElement('input');
+    signinUsernameInput.type = 'text';
+    signinUsernameInput.name = 'signinUsername';
+    signinUsernameInput.id = 'signinUsername';
+    signinUsernameInput.className = 'form-control';
+    signinUsernameInput.required = true;
+    signinUsernameInput.placeholder = 'Enter username or email';
+    signinUsernameGroup.appendChild(signinUsernameInput);
+
+    // Password field
+    const signinPasswordGroup = document.createElement('div');
+    signinPasswordGroup.className = 'mb-3';
+    signinForm.appendChild(signinPasswordGroup);
+
+    const signinPasswordLabel = document.createElement('label');
+    signinPasswordLabel.className = 'form-label fw-bold';
+    signinPasswordLabel.textContent = 'Password';
+    signinPasswordLabel.htmlFor = 'signinPassword';
+    signinPasswordGroup.appendChild(signinPasswordLabel);
+
+    const signinPasswordInput = document.createElement('input');
+    signinPasswordInput.type = 'password';
+    signinPasswordInput.name = 'signinPassword';
+    signinPasswordInput.id = 'signinPassword';
+    signinPasswordInput.className = 'form-control';
+    signinPasswordInput.required = true;
+    signinPasswordInput.placeholder = 'Enter password';
+    signinPasswordGroup.appendChild(signinPasswordInput);
+
+    const signinBtn = document.createElement('button');
+    signinBtn.type = 'submit';
+    signinBtn.className = 'btn btn-success btn-lg w-100 mt-3';
+    signinBtn.textContent = 'Sign In';
+    signinForm.appendChild(signinBtn);
+
+    // Sign in validation
+    signinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const loginValue = signinUsernameInput.value;
+        const passwordValue = signinPasswordInput.value;
+
+        try {
+            const storedData = localStorage.getItem('userData');
+            if (!storedData) {
+                alert('No account found. Please sign up first.');
+                return;
+            }
+
+            const userData = JSON.parse(storedData);
+            
+            // Check if username or email matches
+            const isUsernameMatch = userData.username === loginValue;
+            const isEmailMatch = userData.email === loginValue;
+
+            if ((isUsernameMatch || isEmailMatch)) {
+                // In a real app, you'd verify password hash
+                // For now, just showing successful login
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', userData.username);
+                alert(`Welcome back, ${userData.username}!`);
+                signinForm.reset();
+            } else {
+                alert('Invalid username/email or password');
+            }
+        } catch (e) {
+            console.error('Sign in error:', e);
+            alert('Error during sign in');
+        }
+    });
     }
-    
-    if (!hasLetterAndNumber.test(passwordValue)) {
-        alert('Password must contain both letters and numbers');
-        return;
-    }
-});
 
 });
 
@@ -142,6 +420,13 @@ const stopBtn = document.getElementById("stopBtn");
 const player = document.getElementById("player");
 const downloadLink = document.getElementById("downloadLink");
 const statusEl = document.getElementById("status");
+
+
+
+
+
+
+
 
 let stream;
 let recorder;
@@ -285,10 +570,8 @@ return { author, poems };
 loadRandomAuthorPoems();
 
 
-let poemContainer = document.getElementById('poemContainer');
-if (!poemContainer) {
-  poemContainer = document.createElement('div');
-  poemContainer.id = 'poemContainer';
+let poemContainer = document.getElementById('poem-container');
+if (poemContainer) {
   poemContainer.style.whiteSpace = 'pre-wrap';
   poemContainer.style.background = 'rgba(255,255,255,0.85)';
   poemContainer.style.padding = '12px';
@@ -296,44 +579,102 @@ if (!poemContainer) {
   poemContainer.style.marginTop = '10px';
   poemContainer.style.maxWidth = '800px';
   poemContainer.style.width = '90%';
-  const recorderSection = document.getElementById('recorder') || document.getElementById('signup-section') || document.body;
-  recorderSection.appendChild(poemContainer);
 }
 
 let poemBtn = document.getElementById('poemBtn');
-if (!poemBtn) {
-  poemBtn = document.createElement('button');
-  poemBtn.id = 'poemBtn';
-  poemBtn.textContent = 'Get Poem';
-  poemBtn.className = 'btn btn-secondary';
-  poemContainer.parentNode.insertBefore(poemBtn, poemContainer);
+if (poemBtn && poemContainer) {
+  poemBtn.style.marginTop = '10px';
 }
 
-poemBtn.addEventListener('click', async () => {
-  const { author, poems } = await loadRandomAuthorPoems();
-  if (!Array.isArray(poems) || poems.length === 0) {
-    poemContainer.textContent = 'No poems found for that author.';
-    return;
+// clear button to remove saved poem
+let poemClearBtn = document.getElementById('poemClearBtn');
+if (!poemClearBtn && poemContainer) {
+  poemClearBtn = document.createElement('button');
+  poemClearBtn.id = 'poemClearBtn';
+  poemClearBtn.textContent = 'Clear Poem';
+  poemClearBtn.className = 'btn btn-link';
+  poemClearBtn.style.display = 'none';
+  poemClearBtn.style.marginTop = '10px';
+  poemContainer.parentNode.insertBefore(poemClearBtn, poemContainer.nextSibling);
+}
+
+// If a poem is saved in localStorage, load and display it
+if (poemContainer && poemClearBtn) {
+  try {
+    const saved = localStorage.getItem('savedPoem');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      currentPoem.title = parsed.title || '';
+      currentPoem.author = parsed.author || '';
+      const poemText = parsed.text || '';
+      poemContainer.innerHTML = `<strong>Author:</strong> ${currentPoem.author}<br><strong>${currentPoem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+      poemContainer.style.display = 'block';
+      poemContainer.style.fontSize = '24px';
+      poemContainer.style.textAlign = 'center';
+      poemContainer.style.width = '150%';
+      if (poemBtn) poemBtn.style.display = 'none';
+      poemClearBtn.style.display = 'inline-block';
+    }
+  } catch (e) {
+    console.error('Failed to load saved poem:', e);
   }
+}
 
-  // Prefer poems with <= 20 lines when available
-  const shortPoems = poems.filter(p => (p.lines || []).length <= 20);
-  const pool = shortPoems.length ? shortPoems : poems;
-  const poem = pool[getRandomInt(0, pool.length)];
-  const poemText = (poem.lines || []).join('\n') || poem.text || '';
+if (poemBtn && poemContainer) {
+  poemBtn.addEventListener('click', async () => {
+    const { author, poems } = await loadRandomAuthorPoems();
+    if (!Array.isArray(poems) || poems.length === 0) {
+      poemContainer.textContent = 'No poems found for that author.';
+      return;
+    }
 
-  // store current poem info for naming downloads
-  currentPoem.title = poem.title || 'poem';
-  currentPoem.author = author || '';
+    // Prefer poems with <= 20 lines when available
+    const shortPoems = poems.filter(p => (p.lines || []).length <= 20);
+    const pool = shortPoems.length ? shortPoems : poems;
+    const poem = pool[getRandomInt(0, pool.length)];
+    const poemText = (poem.lines || []).join('\n') || poem.text || '';
 
-  poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
-  poemContainer.scrollIntoView({ behavior: 'smooth' });
-  poemContainer.style.display = 'block';
-  poemBtn.style.display = 'none';
-  poemContainer.style.fontSize = '24px';
-  poemContainer.style.textAlign = 'center';
-  poemContainer.style.width = '150%';
+    // store current poem info for naming downloads
+    currentPoem.title = poem.title || 'poem';
+    currentPoem.author = author || '';
 
-});
+    // also persist poem to localStorage so it survives reloads
+    try {
+      const toSave = { title: currentPoem.title, author: currentPoem.author, text: poemText, savedAt: Date.now() };
+      localStorage.setItem('savedPoem', JSON.stringify(toSave));
+      if (poemClearBtn) poemClearBtn.style.display = 'inline-block';
+    } catch (e) {
+      console.error('Failed to save poem to localStorage:', e);
+    }
+
+    poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+    poemContainer.scrollIntoView({ behavior: 'smooth' });
+    poemContainer.style.display = 'block';
+    poemBtn.style.display = 'none';
+    poemContainer.style.fontSize = '24px';
+    poemContainer.style.textAlign = 'center';
+    poemContainer.style.width = '150%';
+
+  });
+}
+
+// clear saved poem handler
+if (poemClearBtn && poemContainer) {
+  poemClearBtn.addEventListener('click', () => {
+    try {
+      localStorage.removeItem('savedPoem');
+    } catch (e) {
+      console.error('Failed to remove saved poem:', e);
+    }
+    currentPoem = { title: null, author: null };
+    poemContainer.innerHTML = '';
+    poemContainer.style.display = 'none';
+    poemClearBtn.style.display = 'none';
+    if (poemBtn) poemBtn.style.display = 'inline-block';
+  });
+}
 
 
+//create dash board with  user, author, time stamp length of recording, and poem title. Store this info in local storage and display it in a table on the dashboard page.
+
+// Do user research on similar short story sites
