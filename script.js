@@ -105,6 +105,85 @@ document.addEventListener('DOMContentLoaded', () => {
     signinForm.style.display = 'none';
     signupSection.appendChild(signinForm);
 
+    // Signin form fields
+    const signinUsernameLabel = document.createElement('label');
+    signinUsernameLabel.textContent = 'Username: ';
+    signinUsernameLabel.className = 'form-label fw-bold';
+    signinForm.appendChild(signinUsernameLabel);
+
+    const signinUsernameInput = document.createElement('input');
+    signinUsernameInput.type = 'text';
+    signinUsernameInput.name = 'username';
+    signinUsernameInput.className = 'form-control mb-3';
+    signinUsernameInput.required = true;
+    signinUsernameInput.pattern = '[A-Za-z0-9]+';
+    signinUsernameInput.title = 'Username must contain only letters and numbers';
+    signinForm.appendChild(signinUsernameInput);
+
+    const signinPasswordLabel = document.createElement('label');
+    signinPasswordLabel.textContent = 'Password: ';
+    signinPasswordLabel.className = 'form-label fw-bold';
+    signinForm.appendChild(signinPasswordLabel);
+
+    const signinPassword = document.createElement('input');
+    signinPassword.type = 'password';
+    signinPassword.name = 'password';
+    signinPassword.className = 'form-control mb-3';
+    signinPassword.required = true;
+    signinPassword.pattern = '(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+';
+    signinPassword.title = 'Password must contain both letters and numbers';
+    signinForm.appendChild(signinPassword);
+
+    const signinSubmitBtn = document.createElement('button');
+    signinSubmitBtn.type = 'submit';
+    signinSubmitBtn.className = 'btn btn-primary btn-lg w-100';
+    signinSubmitBtn.textContent = 'Sign In';
+    signinForm.appendChild(signinSubmitBtn);
+
+    // Signin form validation on submit
+    signinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const usernameValue = signinUsernameInput.value;
+        const passwordValue = signinPassword.value;
+        const alphanumericRegex = /^[A-Za-z0-9]+$/;
+        const hasLetterAndNumber = /^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$/;
+        
+        if (!alphanumericRegex.test(usernameValue)) {
+            alert('Username must contain only letters and numbers');
+            return;
+        }
+        
+        if (!hasLetterAndNumber.test(passwordValue)) {
+            alert('Password must contain both letters and numbers');
+            return;
+        }
+
+        // Check against stored userData
+        try {
+            const storedData = localStorage.getItem('userData');
+            if (!storedData) {
+                alert('No account found. Please sign up first.');
+                return;
+            }
+
+            const userData = JSON.parse(storedData);
+            
+            // Simple check - in real app, you'd verify password hash
+            if (userData.username === usernameValue) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', userData.username);
+                alert(`Welcome back, ${userData.username}!`);
+                signinForm.reset();
+            } else {
+                alert('Invalid username or password');
+            }
+        } catch (e) {
+            console.error('Sign in error:', e);
+            alert('Error during sign in');
+        }
+    });
+
     // Toggle functionality
     signupToggleBtn.addEventListener('click', () => {
         signupToggleBtn.className = 'btn btn-primary';
@@ -327,106 +406,20 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Account created but failed to save locally');
         }
     });
-
-    // ===== SIGN IN FORM =====
-    // Username/Email field
-    const signinUsernameGroup = document.createElement('div');
-    signinUsernameGroup.className = 'mb-3';
-    signinForm.appendChild(signinUsernameGroup);
-
-    const signinUsernameLabel = document.createElement('label');
-    signinUsernameLabel.className = 'form-label fw-bold';
-    signinUsernameLabel.textContent = 'Username or Email';
-    signinUsernameLabel.htmlFor = 'signinUsername';
-    signinUsernameGroup.appendChild(signinUsernameLabel);
-
-    const signinUsernameInput = document.createElement('input');
-    signinUsernameInput.type = 'text';
-    signinUsernameInput.name = 'signinUsername';
-    signinUsernameInput.id = 'signinUsername';
-    signinUsernameInput.className = 'form-control';
-    signinUsernameInput.required = true;
-    signinUsernameInput.placeholder = 'Enter username or email';
-    signinUsernameGroup.appendChild(signinUsernameInput);
-
-    // Password field
-    const signinPasswordGroup = document.createElement('div');
-    signinPasswordGroup.className = 'mb-3';
-    signinForm.appendChild(signinPasswordGroup);
-
-    const signinPasswordLabel = document.createElement('label');
-    signinPasswordLabel.className = 'form-label fw-bold';
-    signinPasswordLabel.textContent = 'Password';
-    signinPasswordLabel.htmlFor = 'signinPassword';
-    signinPasswordGroup.appendChild(signinPasswordLabel);
-
-    const signinPasswordInput = document.createElement('input');
-    signinPasswordInput.type = 'password';
-    signinPasswordInput.name = 'signinPassword';
-    signinPasswordInput.id = 'signinPassword';
-    signinPasswordInput.className = 'form-control';
-    signinPasswordInput.required = true;
-    signinPasswordInput.placeholder = 'Enter password';
-    signinPasswordGroup.appendChild(signinPasswordInput);
-
-    const signinBtn = document.createElement('button');
-    signinBtn.type = 'submit';
-    signinBtn.className = 'btn btn-success btn-lg w-100 mt-3';
-    signinBtn.textContent = 'Sign In';
-    signinForm.appendChild(signinBtn);
-
-    // Sign in validation
-    signinForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const loginValue = signinUsernameInput.value;
-        const passwordValue = signinPasswordInput.value;
-
-        try {
-            const storedData = localStorage.getItem('userData');
-            if (!storedData) {
-                alert('No account found. Please sign up first.');
-                return;
-            }
-
-            const userData = JSON.parse(storedData);
-            
-            // Check if username or email matches
-            const isUsernameMatch = userData.username === loginValue;
-            const isEmailMatch = userData.email === loginValue;
-
-            if ((isUsernameMatch || isEmailMatch)) {
-                // In a real app, you'd verify password hash
-                // For now, just showing successful login
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', userData.username);
-                alert(`Welcome back, ${userData.username}!`);
-                signinForm.reset();
-            } else {
-                alert('Invalid username/email or password');
-            }
-        } catch (e) {
-            console.error('Sign in error:', e);
-            alert('Error during sign in');
-        }
-    });
     }
 
 });
 
 
 const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 const stopBtn = document.getElementById("stopBtn");
 const player = document.getElementById("player");
 const downloadLink = document.getElementById("downloadLink");
 const statusEl = document.getElementById("status");
-
-
-
-
-
-
-
+const timerEl = document.getElementById("timer");
+// const progressBar = document.getElementById("recordingProgress");
+// const progressTime = document.getElementById("progressTime");
 
 let stream;
 let recorder;
@@ -434,9 +427,68 @@ let chunks = [];
 let audioBlobUrl;
 // Track currently-displayed poem for naming downloads
 let currentPoem = { title: null, author: null };
+// Timer variables
+let startTime = 0;
+let elapsedTime = 0;
+let timerInterval = null;
+let isPaused = false;
+const MAX_RECORDING_TIME = 600000; // 10 minutes in milliseconds
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
+}
+
+function updateTimer() {
+  if (!isPaused) {
+    elapsedTime = Date.now() - startTime;
+  }
+  const totalSeconds = Math.floor(elapsedTime / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const milliseconds = Math.floor((elapsedTime % 1000) / 10); // Get centiseconds (00-99)
+  const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+  
+  if (timerEl) {
+    timerEl.textContent = timeString;
+  }
+  
+  // Update progress bar
+  // if (progressBar && progressTime) {
+  //   const progressPercent = Math.min((elapsedTime / MAX_RECORDING_TIME) * 100, 100);
+  //   progressBar.style.width = `${progressPercent}%`;
+  //   progressBar.setAttribute('aria-valuenow', progressPercent);
+  //   progressTime.textContent = timeString;
+  // }
+}
+
+function startTimer() {
+  startTime = Date.now() - elapsedTime;
+  timerInterval = setInterval(updateTimer, 100);
+  isPaused = false;
+}
+
+function pauseTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  isPaused = true;
+}
+
+function resetTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  elapsedTime = 0;
+  startTime = 0;
+  isPaused = false;
+  if (timerEl) timerEl.textContent = '00:00.00';
+  // if (progressBar) {
+  //   progressBar.style.width = '0%';
+  //   progressBar.setAttribute('aria-valuenow', 0);
+  // }
+  // if (progressTime) progressTime.textContent = '00:00.00';
 }
 
 function pickMimeType() {
@@ -476,11 +528,25 @@ async function startRecording() {
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
 
-    recorder.onstart = () => setStatus("Recording...");
+    recorder.onstart = () => {
+      setStatus("Recording...");
+      startTimer();
+    };
     recorder.onerror = (e) => setStatus(`Recorder error: ${e.error?.message || "unknown"}`);
+
+    recorder.onpause = () => {
+      setStatus("Paused");
+      pauseTimer();
+    };
+
+    recorder.onresume = () => {
+      setStatus("Recording...");
+      startTimer();
+    };
 
     recorder.onstop = () => {
       setStatus("Stopped.");
+      resetTimer();
 
       const blobType = recorder.mimeType || "audio/webm";
       const audioBlob = new Blob(chunks, { type: blobType });
@@ -511,6 +577,7 @@ async function startRecording() {
 
     recorder.start(); 
     startBtn.disabled = true;
+    pauseBtn.disabled = false;
     stopBtn.disabled = false;
   } catch (err) {
     setStatus(`Mic permission failed: ${err.message}`);
@@ -520,10 +587,26 @@ async function startRecording() {
 function stopRecording() {
   if (recorder && recorder.state !== "inactive") recorder.stop();
   startBtn.disabled = false;
+  pauseBtn.disabled = true;
   stopBtn.disabled = true;
 }
 
+function pauseRecording() {
+  if (!recorder) return;
+  
+  if (recorder.state === "recording") {
+    recorder.pause();
+    pauseBtn.textContent = "Resume";
+    pauseBtn.className = "btn btn-info";
+  } else if (recorder.state === "paused") {
+    recorder.resume();
+    pauseBtn.textContent = "Pause";
+    pauseBtn.className = "btn btn-warning";
+  }
+}
+
 if (startBtn) startBtn.addEventListener("click", startRecording);
+if (pauseBtn) pauseBtn.addEventListener("click", pauseRecording);
 if (stopBtn) stopBtn.addEventListener("click", stopRecording);
 
 
