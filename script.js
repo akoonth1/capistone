@@ -21,13 +21,26 @@ document.addEventListener('DOMContentLoaded', () => {
     navList.style.listStyle = 'none';
     navList.style.display = 'flex';
     navList.style.gap = '20px';
+    navList.style.alignItems = 'center';
+
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const currentUser = localStorage.getItem('currentUser');
 
     const navItems = [
         { text: 'Home', href: 'index.html' },
         { text: 'Dashboard', href: 'dash.html' },
         { text: 'Record', href: 'recorder.html' },
-        { text: 'Signup/In', href: 'signup.html' },
     ];
+    
+    // Add conditional navigation item based on login status
+    if (isLoggedIn && currentUser) {
+        navItems.push({ text: `${currentUser}`, href: '#', isUser: true });
+        navItems.push({ text: 'Sign Out', href: '#', isSignOut: true });
+    } else {
+        navItems.push({ text: 'Signup/In', href: 'signup.html' });
+    }
+    
     navItems.forEach(item => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -36,12 +49,39 @@ document.addEventListener('DOMContentLoaded', () => {
         a.style.color = 'white';
         a.style.textDecoration = 'none';    
         a.style.fontSize = '18px';
+        
+        // Style username differently
+        if (item.isUser) {
+            a.style.fontWeight = 'bold';
+            a.style.cursor = 'default';
+            a.style.color = '#4CAF50';
+        }
+        
+        // Add sign out handler
+        if (item.isSignOut) {
+            a.style.cursor = 'pointer';
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                signOut();
+            });
+        }
+        
         li.appendChild(a);
         navList.appendChild(li);
     });
 
     navBar.appendChild(navList);
     theBody.prepend(navBar);
+
+    // Sign out function
+    function signOut() {
+        if (confirm('Are you sure you want to sign out?')) {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('currentUser');
+            alert('You have been signed out successfully!');
+            window.location.reload();
+        }
+    }
 
     let signedIn = false;
 
