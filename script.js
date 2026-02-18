@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: 'Home', href: 'index.html' },
         { text: 'Dashboard', href: 'dash.html' },
         { text: 'Record', href: 'recorder.html' },
+          { text: 'Profile', href: 'profile.html' }
     ];
     
     // Add conditional navigation item based on login status
@@ -788,7 +789,14 @@ if (poemContainer && poemClearBtn) {
       currentPoem.title = parsed.title || '';
       currentPoem.author = parsed.author || '';
       const poemText = parsed.text || '';
-      poemContainer.innerHTML = `<strong>Author:</strong> ${currentPoem.author}<br><strong>${currentPoem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+      poemContainer.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <strong>Author:</strong> ${currentPoem.author}
+          <button class="btn btn-sm btn-danger" onclick="document.getElementById('poemClearBtn').click()">Clear Poem</button>
+        </div>
+        <strong>${currentPoem.title || ''}</strong>
+        <pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>
+      `;
       poemContainer.style.display = 'block';
       poemContainer.style.fontSize = '24px';
       poemContainer.style.textAlign = 'center';
@@ -828,7 +836,14 @@ if (poemBtn && poemContainer) {
       console.error('Failed to save poem to localStorage:', e);
     }
 
-    poemContainer.innerHTML = `<strong>Author:</strong> ${author}<br><strong>${poem.title || ''}</strong><pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>`;
+    poemContainer.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <strong>Author:</strong> ${author}
+        <button class="btn btn-sm btn-danger" onclick="document.getElementById('poemClearBtn').click()">Clear Poem</button>
+      </div>
+      <strong>${poem.title || ''}</strong>
+      <pre style="white-space:pre-wrap;margin-top:8px;">${poemText}</pre>
+    `;
     poemContainer.scrollIntoView({ behavior: 'smooth' });
     poemContainer.style.display = 'block';
     poemBtn.style.display = 'none';
@@ -1026,7 +1041,59 @@ if (carouselInner) {
   loadCarousel();
 }
 
+// Profile page functionality
+const profileSection = document.getElementById('profile');
+if (profileSection) {
+  const currentUser = localStorage.getItem('currentUser') || 'Guest';
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const aboutMe = localStorage.getItem('aboutMe') || '';
+  
+  profileSection.innerHTML = `
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+      <div class="card-body">
+        <h3 class="card-title">Profile Information</h3>
+        <hr>
+        <p><strong>Username:</strong> ${currentUser}</p>
+        ${userData.email ? `<p><strong>Email:</strong> ${userData.email}</p>` : ''}
+        ${userData.age ? `<p><strong>Age:</strong> ${userData.age}</p>` : ''}
+        ${userData.accountType ? `<p><strong>Account Type:</strong> ${userData.accountType}</p>` : ''}
+        ${userData.createdAt ? `<p><strong>Member Since:</strong> ${new Date(userData.createdAt).toLocaleDateString()}</p>` : ''}
+        <hr>
+        <div class="mb-3">
+          <label for="aboutMeInput" class="form-label"><strong>About Me</strong></label>
+          <textarea id="aboutMeInput" class="form-control" rows="4" placeholder="Tell us about yourself...">${aboutMe}</textarea>
+          <button id="saveAboutBtn" class="btn btn-primary mt-2">Save About Me</button>
+        </div>
+        <hr>
+        <p style="font-size: 0.9em; color: #555;">
+
+        </p>
+      </div>
+    </div>
+  `;
+  
+  // Add event listener for save button
+  const saveAboutBtn = document.getElementById('saveAboutBtn');
+  const aboutMeInput = document.getElementById('aboutMeInput');
+  
+  if (saveAboutBtn && aboutMeInput) {
+    saveAboutBtn.addEventListener('click', () => {
+      const aboutMeText = aboutMeInput.value;
+      try {
+        localStorage.setItem('aboutMe', aboutMeText);
+        alert('About Me section saved successfully!');
+      } catch (e) {
+        console.error('Failed to save About Me:', e);
+        alert('Failed to save. Please try again.');
+      }
+    });
+  }
+}
+
 
 //create dash board with  user, author, time stamp length of recording, and poem title. Store this info in local storage and display it in a table on the dashboard page.
 
 // Do user research on similar short story sites
+
+
+
