@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const userData = JSON.parse(storedData);
             
             // Simple check - in real app, you'd verify password hash
+            // Look into using jsSHA library to hash passwords before storing and comparing
             if (userData.username === usernameValue) {
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentUser', userData.username);
@@ -1089,3 +1090,4 @@ if (profileSection) {
 
 
 
+{/* <a href="https://www.flaticon.com/free-icons/book" title="book icons">Book icons created by berkahicon - Flaticon</a> */}
