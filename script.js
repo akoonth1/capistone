@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add conditional navigation item based on login status
     if (isLoggedIn && currentUser) {
-        navItems.push({ text: `${currentUser}`, href: '#', isUser: true });
         navItems.push({ text: 'Sign Out', href: '#', isSignOut: true });
     } else {
         navItems.push({ text: 'Signup/In', href: 'signup.html' });
@@ -50,13 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         a.style.color = 'white';
         a.style.textDecoration = 'none';    
         a.style.fontSize = '18px';
-        
-        // Style username differently
-        if (item.isUser) {
-            a.style.fontWeight = 'bold';
-            a.style.cursor = 'default';
-            a.style.color = '#4CAF50';
-        }
         
         // Add sign out handler
         if (item.isSignOut) {
