@@ -31,11 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: 'Home', href: 'index.html' },
         { text: 'Dashboard', href: 'dash.html' },
         { text: 'Record', href: 'recorder.html' },
-          { text: 'Profile', href: 'profile.html' }
+       { text: 'Search', href: 'search.html' }
+
     ];
     
-    // Add conditional navigation item based on login status
+    // Add conditional navigation items based on login status
     if (isLoggedIn && currentUser) {
+        navItems.push({ text: 'Profile', href: 'profile.html' });
         navItems.push({ text: 'Sign Out', href: '#', isSignOut: true });
     } else {
         navItems.push({ text: 'Signup/In', href: 'signup.html' });
@@ -336,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ageInput.required = true;
     ageInput.min = '13';
     ageInput.max = '120';
-    ageInput.placeholder = 'Enter your age (13-120)';
+    ageInput.placeholder = 'Enter your age';
     ageGroup.appendChild(ageInput);
 
     // Account type field (dropdown)
@@ -1088,6 +1090,349 @@ if (profileSection) {
 
 // Do user research on similar short story sites
 
+// PoetryDB API Wrapper
+class PoetryDB {
+  constructor() {
+    this.baseURL = 'https://poetrydb.org';
+  }
 
+  // Helper to build URL and fetch
+  async _fetch(endpoint) {
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('PoetryDB API Error:', error);
+      throw error;
+    }
+  }
+
+  // Helper to normalize author names for better matching
+  _normalizeAuthorName(name) {
+    // Add space after periods if missing (E.E. -> E. E.)
+    return name.replace(/\.([A-Z])/g, '. $1');
+  }
+
+  // Get all authors
+  async getAuthors() {
+    return await this._fetch('/author');
+  }
+
+  // Get poems by author (with improved name handling)
+  async getByAuthor(author, outputFields = null) {
+    // Try original search first
+    try {
+      let endpoint = `/author/${encodeURIComponent(author)}`;
+      if (outputFields) {
+        endpoint += `/${outputFields}`;
+      }
+      return await this._fetch(endpoint);
+    } catch (error) {
+      // If original fails, try normalized version (e.g., E.E. -> E. E.)
+      const normalized = this._normalizeAuthorName(author);
+      if (normalized !== author) {
+        console.log(`Original author search failed, trying normalized: "${normalized}"`);
+        let endpoint = `/author/${encodeURIComponent(normalized)}`;
+        if (outputFields) {
+          endpoint += `/${outputFields}`;
+        }
+        return await this._fetch(endpoint);
+      }
+      throw error;
+    }
+  }
+
+  // Get all titles
+  async getTitles() {
+    return await this._fetch('/title');
+  }
+
+  // Get poem by title
+  async getByTitle(title, exact = false, outputFields = null) {
+    let endpoint = `/title/${encodeURIComponent(title)}`;
+    if (exact) endpoint += ':abs';
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Search by line content
+  async searchByLine(lineText, exact = false, outputFields = null) {
+    let endpoint = `/lines/${encodeURIComponent(lineText)}`;
+    if (exact) endpoint += ':abs';
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Get poems by line count
+  async getByLinecount(linecount, outputFields = null) {
+    let endpoint = `/linecount/${linecount}`;
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Get random poems
+  async getRandom(count = 1, outputFields = null) {
+    let endpoint = `/random/${count}`;
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Combination search (author + title)
+  async searchByAuthorAndTitle(author, title, outputFields = null) {
+    let endpoint = `/author,title/${encodeURIComponent(author)};${encodeURIComponent(title)}`;
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Combination search (author + linecount)
+  async searchByAuthorAndLinecount(author, linecount, outputFields = null) {
+    let endpoint = `/author,linecount/${encodeURIComponent(author)};${linecount}`;
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Combination search with poemcount
+  async searchWithPoemcount(inputFields, searchTerms, poemcount, outputFields = null) {
+    const fields = inputFields.join(',');
+    const terms = searchTerms.map(t => encodeURIComponent(t)).join(';');
+    let endpoint = `/${fields},poemcount/${terms};${poemcount}`;
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+
+  // Advanced combination search
+  async searchCombination(inputFields, searchTerms, exact = false, outputFields = null) {
+    const fields = inputFields.join(',');
+    const terms = searchTerms.map(t => encodeURIComponent(t)).join(';');
+    let endpoint = `/${fields}/${terms}`;
+    if (exact) endpoint += ':abs';
+    if (outputFields) {
+      endpoint += `/${outputFields}`;
+    }
+    return await this._fetch(endpoint);
+  }
+}
+
+// Create global instance
+window.poetryDB = new PoetryDB();
+
+// Log all authors to console
+poetryDB.getAuthors().then(data => {
+  console.log('All PoetryDB Authors:', data);
+  if (data.authors) {
+    console.log(`Total authors: ${data.authors.length}`);
+    console.log('Authors list:', data.authors);
+  }
+}).catch(error => {
+  console.error('Failed to fetch authors:', error);
+});
+
+
+
+        const searchType = document.getElementById('searchType');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const exactMatch = document.getElementById('exactMatch');
+        const exactMatchGroup = document.getElementById('exactMatchGroup');
+        const searchInputGroup = document.getElementById('searchInputGroup');
+        const resultsSection = document.getElementById('results-section');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultCount = document.getElementById('resultCount');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Update UI based on search type
+        searchType.addEventListener('change', () => {
+            const type = searchType.value;
+            const label = searchInput.previousElementSibling;
+            
+            if (type === 'author') {
+                searchInput.placeholder = 'Enter author name...';
+                label.innerHTML = '<strong>Search Term:</strong>';
+                exactMatchGroup.style.display = 'block';
+                searchInputGroup.style.display = 'block';
+            } else if (type === 'title') {
+                searchInput.placeholder = 'Enter poem title...';
+                label.innerHTML = '<strong>Search Term:</strong>';
+                exactMatchGroup.style.display = 'block';
+                searchInputGroup.style.display = 'block';
+            } else if (type === 'lines') {
+                searchInput.placeholder = 'Enter text from poem...';
+                label.innerHTML = '<strong>Search Term:</strong>';
+                exactMatchGroup.style.display = 'block';
+                searchInputGroup.style.display = 'block';
+            } else if (type === 'linecount') {
+                searchInput.placeholder = 'Enter number of lines...';
+                searchInput.type = 'number';
+                label.innerHTML = '<strong>Number of Lines:</strong>';
+                exactMatchGroup.style.display = 'none';
+                searchInputGroup.style.display = 'block';
+            } else if (type === 'random') {
+                searchInput.placeholder = 'How many random poems? (1-20)';
+                searchInput.type = 'number';
+                searchInput.value = '5';
+                label.innerHTML = '<strong>Number of Poems:</strong>';
+                exactMatchGroup.style.display = 'none';
+                searchInputGroup.style.display = 'block';
+            }
+        });
+
+        // Get selected output fields
+        function getOutputFields() {
+            const fields = [];
+            if (document.getElementById('fieldAuthor').checked) fields.push('author');
+            if (document.getElementById('fieldTitle').checked) fields.push('title');
+            if (document.getElementById('fieldLines').checked) fields.push('lines');
+            if (document.getElementById('fieldLinecount').checked) fields.push('linecount');
+            return fields.length > 0 ? fields.join(',') : null;
+        }
+
+        // Display results
+        function displayResults(data) {
+            resultsContainer.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                resultsContainer.innerHTML = '<div class="alert alert-warning">No poems found matching your search criteria.</div>';
+                resultCount.textContent = '0 results';
+                return;
+            }
+
+            resultCount.textContent = `${data.length} result${data.length !== 1 ? 's' : ''}`;
+            
+            data.forEach(poem => {
+                const card = document.createElement('div');
+                card.className = 'card mb-3';
+                
+                let cardContent = '<div class="card-body">';
+                
+                if (poem.title) {
+                    cardContent += `<h5 class="card-title">${poem.title}</h5>`;
+                }
+                
+                if (poem.author) {
+                    cardContent += `<h6 class="card-subtitle mb-2 text-muted">by ${poem.author}</h6>`;
+                }
+                
+                if (poem.linecount) {
+                    cardContent += `<p class="text-muted"><small>${poem.linecount} lines</small></p>`;
+                }
+                
+                if (poem.lines && Array.isArray(poem.lines)) {
+                    cardContent += '<hr><pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">';
+                    cardContent += poem.lines.join('\n');
+                    cardContent += '</pre>';
+                }
+                
+                // Add Load to Recorder button if poem has lines
+                if (poem.lines && Array.isArray(poem.lines)) {
+                    cardContent += '<hr><button class="btn btn-primary btn-sm load-to-recorder-btn">Load to Recorder</button>';
+                }
+                
+                cardContent += '</div>';
+                card.innerHTML = cardContent;
+                
+                // Add click handler for Load to Recorder button
+                const loadBtn = card.querySelector('.load-to-recorder-btn');
+                if (loadBtn && poem.lines) {
+                    loadBtn.addEventListener('click', () => {
+                        const poemText = poem.lines.join('\n');
+                        const toSave = {
+                            title: poem.title || 'Untitled',
+                            author: poem.author || 'Unknown',
+                            text: poemText,
+                            savedAt: Date.now()
+                        };
+                        localStorage.setItem('savedPoem', JSON.stringify(toSave));
+                        alert(`"${poem.title}" loaded! Redirecting to recorder...`);
+                        window.location.href = 'recorder.html';
+                    });
+                }
+                
+                resultsContainer.appendChild(card);
+            });
+        }
+
+        // Search function
+        async function performSearch() {
+            const type = searchType.value;
+            const query = searchInput.value.trim();
+            const exact = exactMatch.checked;
+            const outputFields = getOutputFields();
+
+            if (!query && type !== 'random') {
+                alert('Please enter a search term');
+                return;
+            }
+
+            // Show loading
+            loadingSpinner.style.display = 'block';
+            resultsSection.style.display = 'none';
+
+            try {
+                let results;
+
+                switch (type) {
+                    case 'author':
+                        results = await poetryDB.getByAuthor(query, outputFields);
+                        break;
+                    case 'title':
+                        results = await poetryDB.getByTitle(query, exact, outputFields);
+                        break;
+                    case 'lines':
+                        results = await poetryDB.searchByLine(query, exact, outputFields);
+                        break;
+                    case 'linecount':
+                        const linecount = parseInt(query);
+                        if (isNaN(linecount) || linecount < 1) {
+                            alert('Please enter a valid number of lines');
+                            return;
+                        }
+                        results = await poetryDB.getByLinecount(linecount, outputFields);
+                        break;
+                    case 'random':
+                        const count = parseInt(query) || 5;
+                        if (count < 1 || count > 20) {
+                            alert('Please enter a number between 1 and 20');
+                            return;
+                        }
+                        results = await poetryDB.getRandom(count, outputFields);
+                        break;
+                }
+
+                displayResults(results);
+                resultsSection.style.display = 'block';
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsContainer.innerHTML = '<div class="alert alert-danger">Error searching poems. Please try again.</div>';
+                resultsSection.style.display = 'block';
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Event listeners
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+ 
 
 {/* <a href="https://www.flaticon.com/free-icons/book" title="book icons">Book icons created by berkahicon - Flaticon</a> */}
