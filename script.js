@@ -901,11 +901,69 @@ function loadRecordings() {
         <td>${recording.duration}</td>
         <td>${recording.timestamp}</td>
         <td>
+          <button class="btn btn-sm btn-success play-btn me-2" data-index="${index}">
+            <i class="bi bi-play-fill"></i> Play
+          </button>
           <button class="btn btn-sm btn-danger delete-btn" data-id="${recording.id}">Delete</button>
         </td>
       `;
       
       recordingsTableBody.appendChild(row);
+      
+      // Add audio player (hidden) for this recording
+      if (recording.audioData) {
+        const audioPlayer = document.createElement('audio');
+        audioPlayer.id = `audio-${index}`;
+        audioPlayer.controls = true;
+        audioPlayer.style.display = 'none';
+        audioPlayer.style.width = '100%';
+        audioPlayer.style.marginTop = '8px';
+        
+        const audioSource = document.createElement('source');
+        audioSource.src = recording.audioData;
+        audioSource.type = recording.blobType || 'audio/webm';
+        
+        audioPlayer.appendChild(audioSource);
+        
+        // Create a cell for the audio player
+        const audioRow = document.createElement('tr');
+        audioRow.id = `audio-row-${index}`;
+        audioRow.style.display = 'none';
+        audioRow.innerHTML = `<td colspan="6" style="padding: 0 15px 15px 15px;"></td>`;
+        audioRow.querySelector('td').appendChild(audioPlayer);
+        
+        recordingsTableBody.appendChild(audioRow);
+      }
+    });
+    
+    // Add play button listeners
+    document.querySelectorAll('.play-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = e.target.getAttribute('data-index') || e.target.parentElement.getAttribute('data-index');
+        const audioRow = document.getElementById(`audio-row-${index}`);
+        const audioPlayer = document.getElementById(`audio-${index}`);
+        
+        if (audioRow && audioPlayer) {
+          // Toggle audio player visibility
+          if (audioRow.style.display === 'none') {
+            audioRow.style.display = 'table-row';
+            audioPlayer.style.display = 'block';
+            audioPlayer.play();
+            e.target.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+            if (e.target.tagName !== 'BUTTON') {
+              e.target.parentElement.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+            }
+          } else {
+            audioPlayer.pause();
+            audioRow.style.display = 'none';
+            audioPlayer.style.display = 'none';
+            e.target.innerHTML = '<i class="bi bi-play-fill"></i> Play';
+            if (e.target.tagName !== 'BUTTON') {
+              e.target.parentElement.innerHTML = '<i class="bi bi-play-fill"></i> Play';
+            }
+          }
+        }
+      });
     });
     
     // Add delete button listeners
@@ -1436,3 +1494,7 @@ poetryDB.getAuthors().then(data => {
  
 
 {/* <a href="https://www.flaticon.com/free-icons/book" title="book icons">Book icons created by berkahicon - Flaticon</a> */}
+
+
+
+
