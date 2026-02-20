@@ -41,6 +41,10 @@ capstone/
 
 ## 🚀 Getting Started
 
+## Go to 
+https://openverses.netlify.app/index.html
+or
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/akoonth1/capistone.git
@@ -72,4 +76,4 @@ npx http-server
 
 - [PoetryDB](https://github.com/thundercomb/poetrydb) - Poetry database API
 - [Bootstrap](https://getbootstrap.com/) - Frontend framework
-
+- [Netify](https://openverses.netlify.app/index.html) -static server
