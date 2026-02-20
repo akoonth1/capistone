@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
         navItems.push({ text: 'Signup/In', href: 'signup.html' });
     }
     
+    // Get current page filename
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    
     navItems.forEach(item => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -51,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
         a.style.color = 'white';
         a.style.textDecoration = 'none';    
         a.style.fontSize = '18px';
+        
+        // Check if this is the current page and add active class
+        if (item.href === currentPage || (currentPage === '' && item.href === 'index.html')) {
+            a.classList.add('nav-link-active');
+        }
         
         // Add sign out handler
         if (item.isSignOut) {

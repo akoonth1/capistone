@@ -58,3 +58,9 @@ body{
 	font-size: 14px;
 	color: #333;
 }
+/* Navigation active state */
+.nav-link-active {
+	color: #ffd700 !important; /* Gold color for active tab */
+	font-weight: bold;
+	text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
